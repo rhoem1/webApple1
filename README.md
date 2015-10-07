@@ -44,7 +44,7 @@ The cycle count of the cpu modulus 256 is found at
 $D01F CYCLES  
 Reading this will return the lower 8 bits of the current cycle count.  
 
-A call to the browser's random number generator is found at 
+A call to the browser's random number generator is found at  
 $D01E RNG  
 Reading this will return a random value from 0 to 255.
 
@@ -57,7 +57,14 @@ incorrectly.
 
 If you'd like to feed the emulation text from a text file, there is a textarea control
 below the terminal.  The associated Load button will load the contents of the textarea
-into the emulation via the keyboard input.
+into the emulation via the keyboard input.  The code you see in this box is the BASIC
+program AMAZING.BAS, a simple maze generator.  To run it, click the MS BASIC button, then
+after the Bytes Free message, click the Load button.  The program is then transferred
+into the BASIC interperter.  Type 'RUN' once it is loaded and generate a Maze.
+
+The emulation tries to run at 4 cycles per microsecond (or 4 * time delta from last frame),
+so it is reasonably fast.
+
 
 
 
