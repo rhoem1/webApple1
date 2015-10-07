@@ -9,13 +9,14 @@
 var Emulator = function() {
 
 	// create computer emulation
-	var cpu = new SixtyFiveCeeOhTwo(),
+	var 
+	aFrame = new AnimationFrame(),
+	cpu = new SixtyFiveCeeOhTwo(),
 	WOZMON = new miWOZMON(),
 	KRUSADER = new miKRUSADER(),
 	IntBASIC = new miIntBASIC(),
 	MSBASIC = new miMSBASIC(),
 
-	aFrame = new AnimationFrame(),
 	terminalWindow = document.getElementById('terminal'),
 	button_reset = document.getElementById('reset_cpu'),
 	button_nmi = document.getElementById('nmi_cpu'),
@@ -24,6 +25,7 @@ var Emulator = function() {
 	button_assembler = document.getElementById('load_assembler'),
 	load_input = document.getElementById('load_input'),
 	load_text = document.getElementById('load_text'),
+
 	terminal = new Terminal( {
 		useFocus: true,
 		useEvents: true,
@@ -41,6 +43,8 @@ var Emulator = function() {
 		useStyle: true
 	} ),
 	hardware = new AppleOne(cpu,terminal);
+
+	var cycleMultiplier = 4;
 
 	terminal.on('data',
 		function(data) {
@@ -123,7 +127,7 @@ var Emulator = function() {
 		var progress = timestamp - start;
 		start = timestamp;
 		// the main loop
-		var cyclesLeft = Math.floor(progress * 1000);
+		var cyclesLeft = Math.floor(progress * 1000) * cycleMultiplier;
 		if(cyclesLeft < 20000000)
 		while(cyclesLeft > 0)  {
 
