@@ -1,53 +1,10 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<title>Apple 1 Emulator</title>
-		<script src="js/AnimationFrame.js"></script>
-		<script src="js/term.js"></script>
-		<script src="js/65co2.js"></script>
-		<script src="js/apple1.js"></script>
-		<script src="js/rom/miIntBASIC.js"></script>
-		<script src="js/rom/miKRUSADER.js"></script>
-		<script src="js/rom/miMSBASIC.js"></script>
-		<script src="js/rom/miWOZMON.js"></script>
-		<script src="js/main.js"></script>
-		<style>
-			#terminal {
-				float:left;
-				position:relative;
-				font-family: monospace ;
-			}
-			.clear {
-				clear: both;
-			}
-			#load_input {
-				width: 400px;
-				height: 200px;
-			}
-		</style>
 
-	</head>
-
-	<body>
-		<div id="emulator">
-		<div id="terminal"></div>
-		<div class="clear"></div>
-		<button id="reset_cpu">Reset</button>
-		<button id="nmi_cpu">NMI</button>
-		<button id="load_intbasic">Integer BASIC</button>
-		<button id="load_msbasic">MS BASIC</button>
-		<button id="load_assembler">Krusader</button>
-		<div class="clear"></div>
-		<textarea id="load_input">
+export const AMAZING_BAS: string = `
 REM AMAZING.BAS
 
 1 POKE 81,255: REM TELL BASIC TO IGNORE WIDTH
 
-
 20 S = RND(-PEEK(-12258)) : REM LOAD RNG
-
-
 
 100 PRINT "WIDTH, HEIGHT:":INPUT H:INPUT V
 102 IF H>10 THEN IF V>10 THEN 110
@@ -212,22 +169,5 @@ REM AMAZING.BAS
 1071 PRINT "+"
 1072 NEXT J
 2000 END
-</textarea>
-		<button id="load_text">Load</button>
-	</div>
 
-	<a href="http://school.anhb.uwa.edu.au/personalpages/kwessen/apple1/Krusader.htm" target="_blank">
-		Krusader documentation
-	</a><br />
-	<a href="http://www.pagetable.com/?p=46" target="_blank">
-		MS Basic
-	</a><br />
-	<a href="http://github.com/jefftranter/6502/tree/master/asm/a1basic" target="_blank">
-		Integer Basic (Woz)
-	</a><br />
-	<a href="https://github.com/jefftranter/6502/tree/master/asm/wozmon" target="_blank">
-		Woz Monitor
-	</a><br />
-		
-	</body>
-</html>
+`;

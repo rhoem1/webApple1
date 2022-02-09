@@ -1,0 +1,52 @@
+body {
+	font-size: 11pt;
+}
+
+emulator {
+	margin:0 auto;
+	background-color: tan;
+	padding-left: 2em;
+	padding-right: 2em;
+	padding-bottom: 2em;
+	border: 5px outset sandybrown;
+  display: grid;
+	width: fit-content;
+  grid-template: "titlearea" auto
+	               "terminal" auto
+                 "buttons" auto
+                 "textbox" auto / auto;
+
+}
+
+h1 {
+  grid-area: titlearea;	
+	text-align: center;
+	color: lightyellow;
+}
+
+terminal {
+  grid-area: terminal;
+  font-family: monospace ;
+	border: 5px inset sandybrown;
+}
+
+buttongroup {
+	grid-area: buttons;
+	display: grid;
+	grid-auto-flow: column dense;
+}
+
+buttongroup button {
+	border: 2px outset lightgray;
+}
+
+textbox {
+	border: 5px inset sandybrown;
+	grid-area: textbox;
+}
+
+textbox textarea {
+  width: 40em;
+  height: 24em;
+	font-family: monospace;
+}

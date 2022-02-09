@@ -2,6 +2,8 @@
 An Apple1 emulator using 65co2 cpu emulation, in javascript  
 By Robert Hoem
 
+New Version written using Angular, ported to Typescript
+
 Wozmonitor, Integer BASIC,  MS BASIC from [jefftrantor][]  
 Krusader 1.3 from [krusader][]  
 Terminal from [term.js][]  
