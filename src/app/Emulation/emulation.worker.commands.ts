@@ -1,0 +1,10 @@
+export const EW_addKeypressToBuffer = 'addKeypressToBuffer';
+export const EW_startEmulation = 'startEmulation';
+export const EW_stopEmulation = 'stopEmulation';
+export const EW_resetCpu = 'resetCpu';
+export const EW_nmiCpu = 'nmiCpu';
+export const EW_startIntBASIC = 'startIntBASIC';
+export const EW_startKRUSADER = 'startKRUSADER';
+export const EW_startMSBASIC = 'startMSBASIC';
+export const EW_loadFromFile = 'loadFromFile';
+export const EW_toggleWidth40 = 'toggleWidth40';

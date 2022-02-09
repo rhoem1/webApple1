@@ -1,7 +1,10 @@
 import Cpu from './Cpu/Cpu';
 import MemoryIntercept from './Cpu/MemoryIntercept';
 import { Terminal } from '../lib/term';
+import { offscreenWorkerApi } from '../lib/offscreenListenerFunc';
 
+const DESTRUCTIVE_BACKSPACE = String.fromCharCode(8) + " " + String.fromCharCode(8);
+const NEWLINE = "\r\n";
 export class miPIA extends MemoryIntercept {
 	/**
 	 * the PIA is made up of 4 memory intercepts
@@ -19,20 +22,19 @@ export class miPIA extends MemoryIntercept {
 	readREG: Function[];
 	writeREG: Function[];
 	cursorX: number;
-	width40: boolean;
-	terminal: typeof Terminal;
+	width40: boolean = false;
 	keyBuffer: string[];
+	worker: offscreenWorkerApi;
 
-	constructor(cpu: Cpu, terminal: typeof Terminal, width40: boolean) {
+	constructor(cpu: Cpu, worker: offscreenWorkerApi) {
 		super(cpu);
+		this.worker = worker;
 		this.regKB = 0;
 		this.regKBcr = 0;
 		this.regDISP = 0;
 		this.regDISPcr = 0;
 		this.counter = 0;
 		this.cursorX = 0;
-		this.width40 = width40;
-		this.terminal = terminal;
 		this.keyBuffer = [];
 		this.readREG = [
 			() => this.readKB(),
@@ -136,7 +138,7 @@ export class miPIA extends MemoryIntercept {
 				// apple 1 used underline for backspace
 				//printf("%c %c",0x08,0x08);
 				//fflush(stdout);
-				this.terminal.write(String.fromCharCode(8) + " " + String.fromCharCode(8));
+			  this.worker.post({ v: DESTRUCTIVE_BACKSPACE });
 				if (this.width40)
 					this.cursorX--;
 				break;
@@ -146,7 +148,7 @@ export class miPIA extends MemoryIntercept {
 			case 0x0D:
 				// End of Line
 				//printf("\r\n");
-				this.terminal.write("\r\n");
+				this.worker.post({ v: NEWLINE });
 				if (this.width40)
 					this.cursorX = 0;
 				break;
@@ -154,14 +156,14 @@ export class miPIA extends MemoryIntercept {
 				// Character
 				//printf("%c",value);
 				//fflush(stdout);
-				this.terminal.write(String.fromCharCode(value));
+				this.worker.post({ v: String.fromCharCode(value) });
 				if (this.width40)
 					this.cursorX++;
 				break;
 		}
 		if (this.width40 && this.cursorX == 40) {
 			this.cursorX = 0;
-			this.terminal.write("\r\n");
+			this.worker.post({ v: NEWLINE });
 		}
 	}
 

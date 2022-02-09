@@ -7,11 +7,13 @@
   <button (click)="onIntBASIC($event)">Integer BASIC</button>
   <button (click)="onMSBASIC($event)">MS BASIC</button>
   <button (click)="onKRUSADER($event)">Krusader</button>
-  <button id="load" (click)="loadFromTextarea($event, loadText.value)">Load</button>
+  <button id="width40" (click)="onToggleWidth40($event)">40 Cols {{checked}}</button>
+  <button id="load" (click)="onLoadFromTextarea($event, loadText.value)">Load</button>
   </buttongroup>
   <textbox>
   <textarea #loadText>{{exampleBas}}</textarea>
   </textbox>
+  <info>{{fps}}</info>
 </emulator>
 
 <div>More info<br />
