@@ -19,10 +19,12 @@ import miKRUSADER from './Rom/miKRUSADER';
 import miMSBASIC from './Rom/miMSBASIC';
 import { offscreenWorkerApi } from "../lib/offscreenListenerFunc";
 
-const CYCLES_PER_SECOND = 16*1024*1024;
+const CYCLES_PER_SECOND = 64*1024*1024;
 
 const MAX_OUTDATA_LENGTH = 80*25;
 
+
+const AVG_FRAMES = 30;
 
 /**
  * Apple One Emulation
@@ -122,30 +124,15 @@ export class AppleOne {
 		while(this.cyclesLeft > CYCLES_PER_SECOND)
 			this.cyclesLeft -= CYCLES_PER_SECOND;
 	  
-    this.avgFrameTime.push({
-			frameTime,
-			cycles
-		});
-    if(this.avgFrameTime.length > 10) this.avgFrameTime.shift();
-    const avgFT = this.avgFrameTime.reduce((prev, curr) => prev + curr.frameTime, 0) / this.avgFrameTime.length;
-		const avgCYCLES = this.avgFrameTime.reduce((prev, curr) => prev + curr.cycles, 0) / this.avgFrameTime.length;
-    const fps = 1.0 / avgFT;
-    const info = [
-      `fps=${fps.toFixed(2)}`,
-      `time=${avgFT.toFixed(3)}`,
-			`cycles=${avgCYCLES.toFixed(1)}`,
-		].join("\n");
-		this.workerApi.post({ fps: info });
+    this.updateFps(frameTime, cycles);
 
 		while (this.cyclesLeft > 0) {
-
 			// run an op, get the cycles used
 			const cycles = this.cpu.doOperation();
 
 			// pass the cycles used to things that need to know
 			//this.updateCycles(cycles);
 			this.cyclesLeft -= cycles;
-
 		}
 		if(this.outdata.length)
 			this.sendOutdata();
@@ -153,6 +140,28 @@ export class AppleOne {
 			this.getNextFrame();
 	}
 		
+
+
+	private updateFps(frameTime: number, cycles: number) {
+		this.avgFrameTime.push({
+			frameTime,
+			cycles
+		});
+		if (this.avgFrameTime.length > AVG_FRAMES) {
+			const avgFT = this.avgFrameTime.reduce((prev, curr) => prev + curr.frameTime, 0) / this.avgFrameTime.length;
+			const avgCYCLES = this.avgFrameTime.reduce((prev, curr) => prev + curr.cycles, 0) / this.avgFrameTime.length;
+			const fps = 1.0 / avgFT;
+			const info = [
+				`fps=${fps.toFixed(2)}`,
+				`time=${avgFT.toFixed(3)}`,
+				`cycles=${avgCYCLES.toFixed(1)}`,
+			].join("\n");
+			this.workerApi.post({ fps: info });
+			this.avgFrameTime = [];
+		}
+	}
+
+	
 	
 	resetCpu() {
 		this.cpu.resetCpu();
