@@ -526,9 +526,6 @@
       this.fixMobile(document);
     }
 
-    if (this.useStyle) {
-      Terminal.insertStyle(document, this.colors[256], this.colors[257], this.fontFamily, this.fontSize);
-    }
   };
 
   /**
@@ -693,7 +690,10 @@
 
   Terminal.insertStyle = function (document, bg, fg, fontFamily, fontSize) {
     var style = document.getElementById('term-style');
-    if (style) return;
+    if (style) {
+      style.parentNode.removeChild(style);
+    }
+    
 
     var head = document.getElementsByTagName('head')[0];
     if (!head) return;
@@ -791,6 +791,10 @@
       // Initialize global actions that
       // need to be taken on the document.
       this.initGlobal();
+    }
+
+    if (this.useStyle) {
+      Terminal.insertStyle(document, this.colors[256], this.colors[257], this.fontFamily, this.fontSize);
     }
 
     if (!('useFocus' in this.options) || this.options.useFocus) {
