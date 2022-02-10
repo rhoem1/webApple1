@@ -7,10 +7,10 @@
   <button (click)="onIntBASIC($event)">Integer BASIC</button>
   <button (click)="onMSBASIC($event)">MS BASIC</button>
   <button (click)="onKRUSADER($event)">Krusader</button>
-  <button id="width40" (click)="onToggleWidth40($event)">80 Cols {{checked}}</button>
+  <button id="width40" (click)="onToggleWidth40($event)" [class.width40]="width40" [class.width80]="!width40">80 Cols</button>
   <button id="load" (click)="onLoadFromTextarea($event, loadText.value)">Load</button>
   </buttongroup>
-  <textbox>
+  <textbox [class.width40]="width40" [class.width80]="!width40">
   <textarea #loadText autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">{{exampleBas}}</textarea>
   </textbox>
   <info>{{fps}}</info>

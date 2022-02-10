@@ -6,8 +6,13 @@
 }
 
 @font-face {
-  font-family: Printchar21;
-  src: url(assets/Printchar21.ttf);
+  font-family: PrintChar21;
+  src: url(assets/PrintChar21.ttf);
+}
+
+@font-face {
+  font-family: PRNumber3;
+  src: url(assets/PRNumber3.ttf);
 }
 
 html {

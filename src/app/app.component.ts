@@ -1,33 +1,32 @@
 import { AfterViewInit, Component, HostListener } from '@angular/core';
 
 import { Terminal } from './lib/term';
-import { AppleOne } from './Emulation/AppleOne';
 
 import { AMAZING_BAS } from './Emulation/Examples/amazing_bas';
 import { offscreenListenerFunc, offscreenWorkerApi } from './lib/offscreenListenerFunc';
-import { 
-	EW_addKeypressToBuffer,
-	EW_loadFromFile,
-	EW_nmiCpu,
-	EW_resetCpu,
-	EW_startEmulation,
-	EW_startIntBASIC,
-	EW_startKRUSADER,
-	EW_startMSBASIC,
-	EW_toggleWidth40,
-	EW_stopEmulation
+import {
+  EW_addKeypressToBuffer,
+  EW_loadFromFile,
+  EW_nmiCpu,
+  EW_resetCpu,
+  EW_startEmulation,
+  EW_startIntBASIC,
+  EW_startKRUSADER,
+  EW_startMSBASIC,
+  EW_stopEmulation
 } from './Emulation/emulation.worker.commands';
+
 
 /**
  * called by the browser to create a worker with an offscreen canvas
  * @param {offscreenListenerFunc} listener worker's onmessage
  * @returns {*} api
  */
- function createWorker(listener: offscreenListenerFunc): offscreenWorkerApi {
+function createWorker(listener: offscreenListenerFunc): offscreenWorkerApi {
 
   let api = offscreenWorker(listener);
-  
-  if(!api) {
+
+  if (!api) {
     const randomId = 'Offscreen' + Math.round(Math.random() * 1000);
     const altUrl = `src_app_Emulation_emulation_worker_ts.js`;
 
@@ -36,19 +35,19 @@ import {
     script.src = altUrl;
     script.async = true;
     script.dataset['id'] = randomId;
-    const connection:{msgs: any[], host: Function, worker: null|Function} = { msgs: [], host: listener, worker: null };
+    const connection: { msgs: any[], host: Function, worker: null | Function } = { msgs: [], host: listener, worker: null };
     api = {
       post: (data: any) => {
-        if(connection.worker) {
+        if (connection.worker) {
           connection.worker({ data });
         } else {
           connection.msgs.push(data);
         }
       },
-			isWorker: false,
+      isWorker: false,
     }
     document.head.appendChild(script);
-		// @ts-ignore
+    // @ts-ignore
     window[randomId] = connection;
   }
 
@@ -56,62 +55,60 @@ import {
 }
 
 // chrome
-function offscreenWorker(listener: offscreenListenerFunc): offscreenWorkerApi|null {
+function offscreenWorker(listener: offscreenListenerFunc): offscreenWorkerApi | null {
   let api = null;
-  if(Worker) {
+  if (Worker) {
     const worker = new Worker(new URL('./Emulation/emulation.worker.ts', import.meta.url), { type: 'module' });
     worker.onmessage = listener;
     api = {
-      post(a: any) { 
-				return worker.postMessage(a);
-			},
-			isWorker: false,
+      post(a: any) {
+        return worker.postMessage(a);
+      },
+      isWorker: false,
     };
   }
   return api;
 }
 
-const CHECKED = '✔';
-const UNCHECKED = ' ';
-
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements AfterViewInit {
   title = 'webApple1';
   terminal: any;
-	hardware: any;
-	exampleBas: string;
-	emulatorWorker: any;
-	fps: any;
-	checked: string = UNCHECKED;
+  hardware: any;
+  exampleBas: string;
+  emulatorWorker: any;
+  fps: any;
   width40: boolean = true;
 
-	constructor() {
 
-		this.exampleBas = AMAZING_BAS;
-		
-		this.emulatorWorker = createWorker(({ data }) => {
-			if(data.fps) {
-				this.fps = data.fps;
-				return;
-			} 
-      if(this.terminal)
-			this.terminalWrite(data.v);
-		});
+  constructor() {
 
-		this.createTerminal();
-		
-	}
-  
+    this.exampleBas = AMAZING_BAS;
+
+    this.emulatorWorker = createWorker(({ data }) => {
+      if (data.fps) {
+        this.fps = data.fps;
+        return;
+      }
+      if (this.terminal)
+        this.terminalWrite(data.v);
+    });
+
+    this.createTerminal();
+
+  }
+
   private createTerminal() {
     const geometry = [
       this.width40 ? 40 : 80,
       25
     ]
+    const fontFamily = this.width40 ? 'PrintChar21' : 'PRNumber3';
     this.terminal = new Terminal({
       useFocus: true,
       useEvents: true,
@@ -127,7 +124,7 @@ export class AppComponent implements AfterViewInit {
       screenKeys: false,
       debug: false,
       useStyle: true,
-      fontFamily: 'Printchar21',
+      fontFamily,
     });
 
     this.terminal.colors[256] = '#000000';
@@ -154,103 +151,98 @@ export class AppComponent implements AfterViewInit {
   private terminalWrite(value: string) {
     this.terminal.write(value);
   }
-	
+
   private insertTerminalIntoView() {
     this.terminal.open(document.querySelectorAll('terminal')[0]);
     this.terminal.focus();
     this.terminal.startBlink();
     this.terminal.showCursor();
   }
-  
+
   private removeTerminalFromView() {
     this.terminal.end();
     this.terminal = null;
   }
 
-	ngAfterViewInit(): void {
-		this.insertTerminalIntoView();
-		
-		this.startEmulation();
-	}
+  ngAfterViewInit(): void {
+    this.insertTerminalIntoView();
+
+    this.startEmulation();
+  }
 
   @HostListener('window:focus')
-	startEmulation() {
-		this.emulatorWorker.post({
-			command: EW_startEmulation,
-		})
-	}
-	
+  startEmulation() {
+    this.emulatorWorker.post({
+      command: EW_startEmulation,
+    })
+  }
+
   @HostListener('window:blur')
-	stopEmulation() {
-		this.emulatorWorker.post({
-			command: EW_stopEmulation,
-		})
-	}
-	
-	// set up event handlers for the buttons
-	onIntBASIC(event: Event) {
-		this.emulatorWorker.post({
-			command: EW_startIntBASIC,
-		});
-		this.focusTerminal(event);
-	}
+  stopEmulation() {
+    this.emulatorWorker.post({
+      command: EW_stopEmulation,
+    })
+  }
 
-	onKRUSADER(event: Event) {
-		this.emulatorWorker.post({
-			command: EW_startKRUSADER,
-		});
-		this.focusTerminal(event);
-	}
+  // set up event handlers for the buttons
+  onIntBASIC(event: Event) {
+    this.emulatorWorker.post({
+      command: EW_startIntBASIC,
+    });
+    this.focusTerminal(event);
+  }
 
-	onMSBASIC(event: Event) {
-		this.emulatorWorker.post({
-		  command: EW_startMSBASIC,
-		});
-		this.focusTerminal(event);
-	}
+  onKRUSADER(event: Event) {
+    this.emulatorWorker.post({
+      command: EW_startKRUSADER,
+    });
+    this.focusTerminal(event);
+  }
+
+  onMSBASIC(event: Event) {
+    this.emulatorWorker.post({
+      command: EW_startMSBASIC,
+    });
+    this.focusTerminal(event);
+  }
 
   onResetCpu(event: Event) {
-		this.emulatorWorker.post({
-			command: EW_resetCpu,
-		})
-		this.focusTerminal(event);
-	}
-	
-	onNonMaskableInterrupt(event: Event) {
-		this.emulatorWorker.post({
-			command: EW_nmiCpu,
-		})
-		this.focusTerminal(event);
-	}
+    this.emulatorWorker.post({
+      command: EW_resetCpu,
+    })
+    this.focusTerminal(event);
+  }
+
+  onNonMaskableInterrupt(event: Event) {
+    this.emulatorWorker.post({
+      command: EW_nmiCpu,
+    })
+    this.focusTerminal(event);
+  }
 
   onLoadFromTextarea(event: Event, value: string) {
-		this.emulatorWorker.post({
-			command: EW_loadFromFile,
-			file: value,
-		})
-		this.focusTerminal(event);
-	}
-	
-	onToggleWidth40(event: Event) {
+    this.emulatorWorker.post({
+      command: EW_loadFromFile,
+      file: value,
+    })
+    this.focusTerminal(event);
+  }
+
+  onToggleWidth40(event: Event) {
     this.width40 = !this.width40;
-    
+
     this.removeTerminalFromView();
 
     this.createTerminal();
 
-		this.insertTerminalIntoView();
-   
-		this.focusTerminal(event);
-		if(this.width40) {
-			this.checked = UNCHECKED;
-		} else {
-			this.checked = CHECKED;
-		}
-	}
+    this.insertTerminalIntoView();
 
-	private focusTerminal(event: Event) {
-		event.preventDefault();
-		(event.target as HTMLInputElement).blur();
-		this.terminal.focus(); // doesn't seem to get focus
-	}
+    this.focusTerminal(event);
+  }
+
+  private focusTerminal(event: Event) {
+    event.preventDefault();
+    (event.target as HTMLInputElement).blur();
+    this.terminal.focus(); // doesn't seem to get focus
+  }
 }
