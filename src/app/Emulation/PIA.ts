@@ -1,10 +1,9 @@
 import Cpu from './Cpu/Cpu';
 import MemoryIntercept from './Cpu/MemoryIntercept';
-import { Terminal } from '../lib/term';
 import { offscreenWorkerApi } from '../lib/offscreenListenerFunc';
 
-const DESTRUCTIVE_BACKSPACE = String.fromCharCode(8) + " " + String.fromCharCode(8);
-const NEWLINE = "\r\n";
+export const DESTRUCTIVE_BACKSPACE = String.fromCharCode(8) + " " + String.fromCharCode(8);
+export const NEWLINE = "\r\n";
 export class miPIA extends MemoryIntercept {
 	/**
 	 * the PIA is made up of 4 memory intercepts
@@ -22,7 +21,6 @@ export class miPIA extends MemoryIntercept {
 	readREG: Function[];
 	writeREG: Function[];
 	cursorX: number;
-	width40: boolean = false;
 	keyBuffer: string[];
 	worker: offscreenWorkerApi;
 
@@ -55,8 +53,8 @@ export class miPIA extends MemoryIntercept {
 	 * this should check a buffer that collects
 	 * keystrokes via the keydown events
 	 */
-	addKeypressToBuffer(c: string) {
-		this.keyBuffer.unshift(c);
+	addKeypressToBuffer(input: string) {
+    input.split('').forEach((key: string) => this.keyBuffer.unshift(key));
 	}
 
 
@@ -136,34 +134,19 @@ export class miPIA extends MemoryIntercept {
 			case 0x5F:
 				// Backspace, del, underline
 				// apple 1 used underline for backspace
-				//printf("%c %c",0x08,0x08);
-				//fflush(stdout);
 			  this.worker.post({ v: DESTRUCTIVE_BACKSPACE });
-				if (this.width40)
-					this.cursorX--;
 				break;
 
 			case 0x0A:
 				break;
 			case 0x0D:
 				// End of Line
-				//printf("\r\n");
 				this.worker.post({ v: NEWLINE });
-				if (this.width40)
-					this.cursorX = 0;
 				break;
 			default:
 				// Character
-				//printf("%c",value);
-				//fflush(stdout);
 				this.worker.post({ v: String.fromCharCode(value) });
-				if (this.width40)
-					this.cursorX++;
 				break;
-		}
-		if (this.width40 && this.cursorX == 40) {
-			this.cursorX = 0;
-			this.worker.post({ v: NEWLINE });
 		}
 	}
 

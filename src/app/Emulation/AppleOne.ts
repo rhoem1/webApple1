@@ -12,7 +12,7 @@
 import Cpu, { NMI_VECTOR, VECTOR_TABLE, VECTOR_TABLE_LENGTH } from './Cpu/Cpu';
 import RomIntercept from './Cpu/RomIntercept';
 import { miRNG } from './miRNG';
-import { miPIA } from './PIA';
+import { DESTRUCTIVE_BACKSPACE, miPIA } from './PIA';
 import miIntBASIC from './Rom/miIntBASIC';
 import miWOZMON from './Rom/miWOZMON';
 import miKRUSADER from './Rom/miKRUSADER';
@@ -20,6 +20,8 @@ import miMSBASIC from './Rom/miMSBASIC';
 import { offscreenWorkerApi } from "../lib/offscreenListenerFunc";
 
 const CYCLES_PER_SECOND = 64*1024*1024;
+
+const MAX_OUTDATA_LENGTH = 80*25;
 
 
 const AVG_FRAMES = 30;
@@ -51,7 +53,7 @@ export class AppleOne {
 		this.pia = new miPIA(this.cpu, {
 			post: (a) => {
 				this.outdata.push(a.v);
-				if (this.outdata.length > 80)
+				if (this.outdata.length > MAX_OUTDATA_LENGTH)
 					this.sendOutdata();
 			},
 			isWorker: this.workerApi.isWorker,
@@ -127,6 +129,9 @@ export class AppleOne {
 		while (this.cyclesLeft > 0) {
 			// run an op, get the cycles used
 			const cycles = this.cpu.doOperation();
+
+			// pass the cycles used to things that need to know
+			//this.updateCycles(cycles);
 			this.cyclesLeft -= cycles;
 		}
 		if(this.outdata.length)
@@ -135,30 +140,6 @@ export class AppleOne {
 			this.getNextFrame();
 	}
 		
-
-
-	private updateFps(frameTime: number, cycles: number) {
-		this.avgFrameTime.push({
-			frameTime,
-			cycles
-		});
-		if (this.avgFrameTime.length > AVG_FRAMES) {
-			const avgFT = this.avgFrameTime.reduce((prev, curr) => prev + curr.frameTime, 0) / this.avgFrameTime.length;
-			const avgCYCLES = this.avgFrameTime.reduce((prev, curr) => prev + curr.cycles, 0) / this.avgFrameTime.length;
-			const fps = 1.0 / avgFT;
-			const info = [
-				`fps=${fps.toFixed(2)}`,
-				`time=${avgFT.toFixed(3)}`,
-				`cycles=${avgCYCLES.toFixed(1)}`,
-			].join("\n");
-			this.workerApi.post({ fps: info });
-			this.avgFrameTime = [];
-		}
-	}
-
-	set40columnLimit(width40: boolean) {
-		this.pia.width40 = width40;
-	}
 	
 	resetCpu() {
 		this.cpu.resetCpu();
@@ -183,6 +164,7 @@ export class AppleOne {
 		this.cpu.resetCpu();
 		this.MSBASIC.copyIntoMemory();
 		this.cpu.setPC(this.MSBASIC.startAddress);
+    this.addKeypressToBuffer(DESTRUCTIVE_BACKSPACE);
 	}
 
 }

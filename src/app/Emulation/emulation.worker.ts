@@ -48,7 +48,7 @@ class EmulationWorker {
   }
 
   loadFromFile({ file }: { file: string }) {
-    file.split('').forEach((key: string) => this.hardware.addKeypressToBuffer(key));
+    this.hardware.addKeypressToBuffer(file)
   }
 
   addKeypressToBuffer({ data }: { data: string }) {
@@ -81,10 +81,6 @@ class EmulationWorker {
 
   startMSBASIC() {
     this.hardware.startMSBASIC();
-  }
-  
-  toggleWidth40() {
-    this.hardware.pia.width40 = !this.hardware.pia.width40;
   }
 
 }
