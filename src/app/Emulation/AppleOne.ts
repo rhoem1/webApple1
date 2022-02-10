@@ -12,7 +12,7 @@
 import Cpu, { NMI_VECTOR, VECTOR_TABLE, VECTOR_TABLE_LENGTH } from './Cpu/Cpu';
 import RomIntercept from './Cpu/RomIntercept';
 import { miRNG } from './miRNG';
-import { miPIA } from './PIA';
+import { DESTRUCTIVE_BACKSPACE, miPIA } from './PIA';
 import miIntBASIC from './Rom/miIntBASIC';
 import miWOZMON from './Rom/miWOZMON';
 import miKRUSADER from './Rom/miKRUSADER';
@@ -20,6 +20,8 @@ import miMSBASIC from './Rom/miMSBASIC';
 import { offscreenWorkerApi } from "../lib/offscreenListenerFunc";
 
 const CYCLES_PER_SECOND = 16*1024*1024;
+
+const MAX_OUTDATA_LENGTH = 80*25;
 
 
 /**
@@ -49,7 +51,7 @@ export class AppleOne {
 		this.pia = new miPIA(this.cpu, {
 			post: (a) => {
 				this.outdata.push(a.v);
-				if (this.outdata.length > 80)
+				if (this.outdata.length > MAX_OUTDATA_LENGTH)
 					this.sendOutdata();
 			},
 			isWorker: this.workerApi.isWorker,
@@ -140,8 +142,6 @@ export class AppleOne {
 			// run an op, get the cycles used
 			const cycles = this.cpu.doOperation();
 
-			//	console.log(cpu.dumper.cpuState());
-
 			// pass the cycles used to things that need to know
 			//this.updateCycles(cycles);
 			this.cyclesLeft -= cycles;
@@ -153,11 +153,6 @@ export class AppleOne {
 			this.getNextFrame();
 	}
 		
-
-
-	set40columnLimit(width40: boolean) {
-		this.pia.width40 = width40;
-	}
 	
 	resetCpu() {
 		this.cpu.resetCpu();
@@ -182,6 +177,7 @@ export class AppleOne {
 		this.cpu.resetCpu();
 		this.MSBASIC.copyIntoMemory();
 		this.cpu.setPC(this.MSBASIC.startAddress);
+    this.addKeypressToBuffer(DESTRUCTIVE_BACKSPACE);
 	}
 
 }
