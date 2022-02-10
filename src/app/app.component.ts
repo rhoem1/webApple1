@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, HostListener } from '@angular/core';
 
 import { Terminal } from './lib/term';
 import { AppleOne } from './Emulation/AppleOne';
@@ -88,29 +88,9 @@ export class AppComponent implements AfterViewInit {
 	emulatorWorker: any;
 	fps: any;
 	checked: string = UNCHECKED;
+  width40: boolean = true;
 
 	constructor() {
-
-		this.terminal = new Terminal({
-			useFocus: true,
-			useEvents: true,
-			useMouse: false,
-			convertEol: false,
-			termName: 'xterm',
-			geometry: [80, 25],
-			cursorBlink: true,
-			cursorHidden: false,
-			visualBell: false,
-			popOnBell: false,
-			scrollback: 1000,
-			screenKeys: false,
-			debug: false,
-			useStyle: true
-		});
-		
-
-		//this.terminal.cursorHidden = false;
-		this.terminal.cursorBlink = true;
 
 		this.exampleBas = AMAZING_BAS;
 		
@@ -119,40 +99,88 @@ export class AppComponent implements AfterViewInit {
 				this.fps = data.fps;
 				return;
 			} 
-			this.terminal.write(data.v);
+      if(this.terminal)
+			this.terminalWrite(data.v);
 		});
+
+		this.createTerminal();
 		
-		this.terminal.addListener('data',
-			(data: string) => {
-				var s = data.split('');
-				for (var i = 0; i < s.length; ++i) {
-					this.emulatorWorker.post({
-						command: EW_addKeypressToBuffer,
-						data: s[i],
-					});
-				}
-			}
-		);
-		
-		window.addEventListener('blur', () => this.stopEmulation());
-		window.addEventListener('focus', () => this.startEmulation());
 	}
+  
+  private createTerminal() {
+    const geometry = [
+      this.width40 ? 40 : 80,
+      25
+    ]
+    this.terminal = new Terminal({
+      useFocus: true,
+      useEvents: true,
+      useMouse: false,
+      convertEol: false,
+      termName: 'xterm',
+      geometry,
+      cursorBlink: true,
+      cursorHidden: false,
+      visualBell: false,
+      popOnBell: false,
+      scrollback: 1000,
+      screenKeys: false,
+      debug: false,
+      useStyle: true,
+      fontFamily: 'Printchar21',
+    });
+
+    this.terminal.colors[256] = '#000000';
+    this.terminal.colors[257] = '#00D000';
+
+
+    //this.terminal.cursorHidden = false;
+    this.terminal.cursorBlink = true;
+
+
+    this.terminal.addListener('data',
+      (data: string) => {
+        var s = data.split('');
+        for (var i = 0; i < s.length; ++i) {
+          this.emulatorWorker.post({
+            command: EW_addKeypressToBuffer,
+            data: s[i],
+          });
+        }
+      }
+    );
+  }
+
+  private terminalWrite(value: string) {
+    this.terminal.write(value);
+  }
+	
+  private insertTerminalIntoView() {
+    this.terminal.open(document.querySelectorAll('terminal')[0]);
+    this.terminal.focus();
+    this.terminal.startBlink();
+    this.terminal.showCursor();
+  }
+  
+  private removeTerminalFromView() {
+    this.terminal.end();
+    this.terminal = null;
+  }
 
 	ngAfterViewInit(): void {
-		this.terminal.open(document.querySelectorAll('terminal')[0]);
-		this.terminal.focus();
-		this.terminal.startBlink();
-		this.terminal.showCursor();
+		this.insertTerminalIntoView();
 		
 		this.startEmulation();
 	}
-	
+
+  @HostListener('window:focus')
 	startEmulation() {
 		this.emulatorWorker.post({
 			command: EW_startEmulation,
 		})
 	}
 	
+  @HostListener('window:blur')
 	stopEmulation() {
 		this.emulatorWorker.post({
 			command: EW_stopEmulation,
@@ -204,14 +232,19 @@ export class AppComponent implements AfterViewInit {
 	}
 	
 	onToggleWidth40(event: Event) {
-		this.emulatorWorker.post({
-			command: EW_toggleWidth40,
-		});
+    this.width40 = !this.width40;
+    
+    this.removeTerminalFromView();
+
+    this.createTerminal();
+
+		this.insertTerminalIntoView();
+   
 		this.focusTerminal(event);
-		if(this.checked !== CHECKED) {
-			this.checked = CHECKED;
-		} else {
+		if(this.width40) {
 			this.checked = UNCHECKED;
+		} else {
+			this.checked = CHECKED;
 		}
 	}
 
