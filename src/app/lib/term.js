@@ -444,7 +444,9 @@
     scrollback: 1000,
     screenKeys: false,
     debug: false,
-    useStyle: false
+    useStyle: false,
+    fontFamily: 'monospace',
+    fontSize: '1rem',
     // programFeatures: false,
     // focusKeys: false,
   };
@@ -525,7 +527,7 @@
     }
 
     if (this.useStyle) {
-      Terminal.insertStyle(document, this.colors[256], this.colors[257]);
+      Terminal.insertStyle(document, this.colors[256], this.colors[257], this.fontFamily, this.fontSize);
     }
   };
 
@@ -689,7 +691,7 @@
    * Insert a default style
    */
 
-  Terminal.insertStyle = function (document, bg, fg) {
+  Terminal.insertStyle = function (document, bg, fg, fontFamily, fontSize) {
     var style = document.getElementById('term-style');
     if (style) return;
 
@@ -700,12 +702,15 @@
     style.id = 'term-style';
 
     // textContent doesn't work well with IE for <style> elements.
+      // + '  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;\n'
+      // + '  font-size: 11px;\n'
+      
     style.innerHTML = ''
       + '.terminal {\n'
       + '  float: left;\n'
       + '  border: ' + bg + ' solid 5px;\n'
-      + '  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;\n'
-      + '  font-size: 11px;\n'
+      + '  font-family: ' + fontFamily + ';\n'
+      + '  font-size: ' + fontSize + ';\n'
       + '  color: ' + fg + ';\n'
       + '  background: ' + bg + ';\n'
       + '}\n'

@@ -105,8 +105,12 @@ export class AppComponent implements AfterViewInit {
 			scrollback: 1000,
 			screenKeys: false,
 			debug: false,
-			useStyle: true
+			useStyle: true,
+      fontFamily: 'Printchar21',
 		});
+    
+    this.terminal.colors[256] = '#000000';
+    this.terminal.colors[257] = '#00D000';
 		
 
 		//this.terminal.cursorHidden = false;
